@@ -15,7 +15,9 @@ class Tracker:
     def run_video(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
+        points = []
 
+        out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M','J','P','G'), 10, (640,480))
         # while video is running
         while (cap.isOpened()):
 
@@ -31,10 +33,21 @@ class Tracker:
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
 
+            pos =-1
+            for i in range(ids.size):
+                if ids[i] == 8:
+                    pos = i
+                    break
+            if 8 in ids:
+                c = self.get_center(corners[pos][0])
+                points.append(c)
+                
+            for cent in points:
+                cv2.circle(frame, cent, 13, (60,179,113), -1)
             if ids.size > 0:
                 # makes drawnings on the markers
-                frame_markers = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
-
+                frame_markers = aruco.drawDetectedMarkers(frame, corners, ids)
+                out.write(frame_markers)
                 cv2.imshow('My video', frame_markers)
 
             else:
@@ -45,7 +58,7 @@ class Tracker:
 
             if (k == 27):
                 break
-
+        out.release()
         cap.release()
         cv2.destroyAllWindows()
 
@@ -77,3 +90,14 @@ class Tracker:
         cv2.destroyAllWindows()
         
         return
+    
+    def get_center(self, corners):
+        xm = ym = 0
+        for i in range(4):
+            xm += corners[i][0]
+            ym += corners[i][1]
+        
+        xm //= 4
+        ym //= 4
+
+        return (int(xm), int(ym))
