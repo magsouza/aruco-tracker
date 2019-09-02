@@ -6,10 +6,6 @@ import matplotlib.pyplot as plt
 
 class Tracker:
 
-    def __init__(self, mtx, dst):
-        self.focal = mtx
-        self.distortion = dst
-    
     def run(self, ftype, name):
         if ftype == 'video':
             self.run_video(name)
@@ -27,7 +23,7 @@ class Tracker:
             ret, frame = cap.read()
 
             # last frame
-            if(not frame):
+            if(frame is None):
                 break
 
             # aruco dict paramenters, corners and ids
@@ -35,14 +31,7 @@ class Tracker:
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
 
-            # vector to estimate pose
-            rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.1, self.focal, self.distortion)
-
             if ids.size > 0:
-                # draws axis on the markers
-                for i in range(ids.size):
-                    aruco.drawAxis(frame, self.focal, self.distortion, rvec[i], tvec[i], 0.1)
-
                 # makes drawnings on the markers
                 frame_markers = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
 
@@ -71,25 +60,9 @@ class Tracker:
         corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict, parameters=parameters)
         img_markers = aruco.drawDetectedMarkers(img.copy(), corners, ids)
 
-        # vectors to pose estimation
-        rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.focal, self.distortion)
-
-        for i in range(ids.size):
-            print(f'id = {ids[i]}')
-            print(f'rvec = {rvec[i][0]}')
-            print(f'tvec = {tvec[i][0]}')
-
         if ids.size > 0:
-            # draws axis on the markers
-            for i in range(ids.size):
-                aruco.drawAxis(img, self.focal, self.distortion, rvec[i], tvec[i], 0.1)
-
             # makes drawnings on the markers
             img_markers = aruco.drawDetectedMarkers(img.copy(), corners, ids)
-            
-            hig = int(img_markers.shape[0] * 0.75)
-            wid = int(img_markers.shape[1] * 0.75)
-            img_markers = cv2.resize(img_markers, (hig, wid))
             
             cv2.imshow('My photo', img_markers)
 

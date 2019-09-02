@@ -14,4 +14,4 @@ mtx = (np.array(mtx, dtype=np.float32))
 dist = (np.array(dist, dtype=np.float32))
 
 s8 = tracker.Tracker(mtx, dist)
-s8.run('photo', 'mir.jpeg')
+s8.run('video', 'trip.mp4')
