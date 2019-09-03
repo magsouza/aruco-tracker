@@ -1,10 +1,16 @@
 import numpy as np
-import cv2, PIL
+import cv2, PIL, math
 from cv2 import aruco
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 class Tracker:
+
+    def __init__(self, msize):
+        self.marker_cm = msize
+        self.marker_px = 0
+        self.get_marker = False
+        self.desloc = 0
 
     def run(self, ftype, name):
         if ftype == 'video':
@@ -15,9 +21,10 @@ class Tracker:
     def run_video(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
+
+        #trajetory points
         points = []
 
-        out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M','J','P','G'), 10, (640,480))
         # while video is running
         while (cap.isOpened()):
 
@@ -33,21 +40,24 @@ class Tracker:
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
 
-            pos =-1
+            pos = idx = -1
             for i in range(ids.size):
-                if ids[i] == 8:
+                if ids[i] == 9 and not self.get_marker:
+                    self.marker_px = abs(corners[0][0][0][0] - corners[0][0][2][0])
+                    self.get_marker = not self.get_marker
+                elif ids[i] == 8:
                     pos = i
-                    break
+
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
                 points.append(c)
                 
-            for cent in points:
-                cv2.circle(frame, cent, 13, (60,179,113), -1)
+            for center in points:
+                cv2.circle(frame, center, 13, (255,102,102), -1)
+            
             if ids.size > 0:
                 # makes drawnings on the markers
                 frame_markers = aruco.drawDetectedMarkers(frame, corners, ids)
-                out.write(frame_markers)
                 cv2.imshow('My video', frame_markers)
 
             else:
@@ -58,7 +68,10 @@ class Tracker:
 
             if (k == 27):
                 break
-        out.release()
+
+        self.get_move(points)
+        self.convert(self.desloc)
+
         cap.release()
         cv2.destroyAllWindows()
 
@@ -101,3 +114,12 @@ class Tracker:
         ym //= 4
 
         return (int(xm), int(ym))
+    
+    def get_move(self, points):
+        for i in range(1, len(points)):
+            x = pow((points[i-1][0] - points[i][0]),2)
+            y = pow((points[i-1][1] - points[i][1]),2)
+            self.desloc += np.sqrt(x + y)
+    
+    def convert(self, v_px):
+        self.desloc = self.desloc * (self.marker_cm / self.marker_px)

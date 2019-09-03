@@ -1,5 +1,6 @@
 import numpy as np
 import tracker
 
-s8 = tracker.Tracker()
-s8.run('video', 'slow.mp4')
+tracking = tracker.Tracker(2.75)
+tracking.run('video', 'emborrachado_SM_01.mp4')
+print(f'cubo andou ::: {tracking.desloc} cm \nmarcardor tem tamanho ::: {tracking.marker_px} pixels e {tracking.marker_cm} cm')
