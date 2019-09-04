@@ -36,10 +36,10 @@ class Tracker:
 
             pos = idx = -1
             for i in range(ids.size):
-                if ids[i] == 9 and not self.get_marker:
-                    self.marker_px = abs(corners[0][0][0][0] - corners[0][0][2][0])
+                if ids[i] == 8 and not self.get_marker:
+                    self.marker_px = abs(corners[i][0][0][0] - corners[i][0][2][0])
                     self.get_marker = not self.get_marker
-                elif ids[i] == 8:
+                if ids[i] == 8:
                     pos = i
 
             if 8 in ids:
@@ -47,11 +47,12 @@ class Tracker:
                 points.append(c)
                 
             for center in points:
-                cv2.circle(frame, center, 13, (255,102,102), -1)
+                cv2.circle(frame, center, 5, (255,102,102), -1)
             
             if ids.size > 0:
                 # makes drawnings on the markers
                 frame_markers = aruco.drawDetectedMarkers(frame, corners, ids)
+                frame_markers = cv2.resize(frame_markers,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
                 cv2.imshow('My video', frame_markers)
 
             else:
