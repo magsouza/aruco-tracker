@@ -12,13 +12,7 @@ class Tracker:
         self.get_marker = False
         self.desloc = 0
 
-    def run(self, ftype, name):
-        if ftype == 'video':
-            self.run_video(name)
-        elif ftype == 'photo':
-            self.run_photo(name)
-    
-    def run_video(self, name):
+    def run(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
 
@@ -77,33 +71,6 @@ class Tracker:
 
         return
 
-    def run_photo(self, name):
-        img = cv2.imread(name)
-
-        # aruco dict paramenters, corners and ids
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-        parameters = aruco.DetectorParameters_create()
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict, parameters=parameters)
-        img_markers = aruco.drawDetectedMarkers(img.copy(), corners, ids)
-
-        if ids.size > 0:
-            # makes drawnings on the markers
-            img_markers = aruco.drawDetectedMarkers(img.copy(), corners, ids)
-            
-            cv2.imshow('My photo', img_markers)
-
-        else:
-            print("No IDs detected")
-            cv2.imshow('My photo', img)
-
-        while(True):
-            k = cv2.waitKey(1) & 0xff
-            if (k == 27):
-                break
-        cv2.destroyAllWindows()
-        
-        return
-    
     def get_center(self, corners):
         xm = ym = 0
         for i in range(4):
