@@ -1,8 +1,6 @@
 import numpy as np
-import cv2, PIL, math
+import cv2
 from cv2 import aruco
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
 class Tracker:
 
