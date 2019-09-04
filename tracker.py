@@ -32,18 +32,23 @@ class Tracker:
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
 
-            pos = idx = -1
+            # find marker position and marker size in pixel
+            pos = 0
             for i in range(ids.size):
-                if ids[i] == 8 and not self.get_marker:
+                # this condition checks the marker size
+                if ids[i] == 9 and not self.get_marker:
                     self.marker_px = abs(corners[i][0][0][0] - corners[i][0][2][0])
+                    # comment the next line to get the size of the last frame
                     self.get_marker = not self.get_marker
+                # this condition finds the cube marker
                 if ids[i] == 8:
                     pos = i
 
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
                 points.append(c)
-                
+
+            # draw the circle
             for center in points:
                 cv2.circle(frame, center, 5, (255,102,102), -1)
             
@@ -52,7 +57,6 @@ class Tracker:
                 frame_markers = aruco.drawDetectedMarkers(frame, corners, ids)
                 frame_markers = cv2.resize(frame_markers,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
                 cv2.imshow('My video', frame_markers)
-
             else:
                 print("No IDs detected")
                 cv2.imshow('My video', frame)
@@ -61,8 +65,9 @@ class Tracker:
 
             if (k == 27):
                 break
-
+        # estimate the displacement of the cube
         self.get_move(points)
+        # coverts from pixel to cm
         self.convert(self.desloc)
 
         cap.release()
@@ -88,4 +93,4 @@ class Tracker:
             self.desloc += np.sqrt(x + y)
     
     def convert(self, v_px):
-        self.desloc = self.desloc * (self.marker_cm / self.marker_px)
+        self.desloc = self.desloc * (self.marker_cm / 30)
