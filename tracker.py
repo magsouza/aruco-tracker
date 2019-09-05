@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from cv2 import aruco
+import matplotlib.pyplot as plt
 
 class Tracker:
 
@@ -9,13 +10,11 @@ class Tracker:
         self.marker_px = 0
         self.get_marker = False
         self.desloc = 0
+        self.trajetory = []
 
     def run(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
-
-        #trajetory points
-        points = []
 
         # while video is running
         while (cap.isOpened()):
@@ -46,10 +45,10 @@ class Tracker:
 
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
-                points.append(c)
+                self.trajetory.append(c)
 
             # draw the circle
-            for center in points:
+            for center in self.trajetory:
                 cv2.circle(frame, center, 5, (255,102,102), -1)
             
             if ids.size > 0:
@@ -65,15 +64,14 @@ class Tracker:
 
             if (k == 27):
                 break
+
         # estimate the displacement of the cube
-        self.get_move(points)
+        self.get_move(self.trajetory)
         # coverts from pixel to cm
         self.convert(self.desloc)
 
         cap.release()
         cv2.destroyAllWindows()
-
-        return
 
     def get_center(self, corners):
         xm = ym = 0
