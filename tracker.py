@@ -11,17 +11,18 @@ class Tracker:
         self.get_marker = False
         self.desloc = 0
         self.trajetory = []
+        self.time = None
 
     def run(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
-
+        self.time = [cap.get(cv2.CAP_PROP_POS_MSEC)]
         # while video is running
         while (cap.isOpened()):
 
             # get frame
             ret, frame = cap.read()
-
+            self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000)
             # last frame
             if(frame is None):
                 break
