@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from cv2 import aruco
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
 class Tracker:
 
@@ -11,18 +12,18 @@ class Tracker:
         self.get_marker = False
         self.desloc = 0
         self.trajetory = []
-        self.time = None
+        self.time = []
 
     def run(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
-        self.time = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+
         # while video is running
         while (cap.isOpened()):
 
             # get frame
             ret, frame = cap.read()
-            self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000)
+
             # last frame
             if(frame is None):
                 break
@@ -47,6 +48,7 @@ class Tracker:
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
                 self.trajetory.append(c)
+                self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000)
 
             # draw the circle
             for center in self.trajetory:
@@ -68,8 +70,11 @@ class Tracker:
 
         # estimate the displacement of the cube
         self.get_move(self.trajetory)
+        
         # coverts from pixel to cm
         self.convert(self.desloc)
+
+        self.plot(self.trajetory, self.time)
 
         cap.release()
         cv2.destroyAllWindows()
@@ -93,3 +98,19 @@ class Tracker:
     
     def convert(self, v_px):
         self.desloc *= (self.marker_cm / 30)
+
+    def plot(self, trajetory, times):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        print(f'trajetory = {len(trajetory)} --- times = {len(times)}')
+
+        X = np.array([x[0] for x in trajetory])
+        Y = np.array([x[1] for x in trajetory])
+        Z = np.array(times)
+
+        ax.plot(X,Y,Z)
+        ax.set_xlabel('x (px)')
+        ax.set_ylabel('y (px)')
+        ax.set_zlabel('time (s)')
+        plt.show()
