@@ -11,18 +11,18 @@ class Tracker:
         self.get_marker = False
         self.desloc = 0
         self.trajetory = []
-        self.time = None
+        self.time = []
 
     def run(self, name):
         # captures the video
         cap = cv2.VideoCapture(name)
-        self.time = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+
         # while video is running
         while (cap.isOpened()):
 
             # get frame
             ret, frame = cap.read()
-            self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000)
+            
             # last frame
             if(frame is None):
                 break
@@ -47,6 +47,8 @@ class Tracker:
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
                 self.trajetory.append(c)
+                # as the slow motion is 10x slower
+                self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 10000)
 
             # draw the circle
             for center in self.trajetory:
@@ -70,6 +72,8 @@ class Tracker:
         self.get_move(self.trajetory)
         # coverts from pixel to cm
         self.convert(self.desloc)
+        # plotting graph
+        self.plot_2d('y', self.trajetory, self.time)
 
         cap.release()
         cv2.destroyAllWindows()
@@ -91,5 +95,20 @@ class Tracker:
             y = pow((points[i-1][1] - points[i][1]),2)
             self.desloc += np.sqrt(x + y)
     
-    def convert(self, v_px):
-        self.desloc *= (self.marker_cm / 30)
+    def convert(self, v):
+        v *= (self.marker_cm / 29)
+    
+    def plot_2d(self, axis, points, time):
+        i = -1
+        if axis == 'x':
+            i = 0
+        elif axis == 'y':
+            i = 1
+        
+        y_axis = []
+        for point in points:
+            y_axis.append(point[i] * (self.marker_cm / 30) - 10)
+        plt.plot(time, y_axis)
+        plt.ylabel('cube displacement (cm)')
+        plt.xlabel('time (sec)')
+        plt.show()
