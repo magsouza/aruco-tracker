@@ -91,4 +91,4 @@ class Tracker:
             self.desloc += np.sqrt(x + y)
     
     def convert(self, v_px):
-        self.desloc = self.desloc * (self.marker_cm / 30)
+        self.desloc *= (self.marker_cm / 30)
