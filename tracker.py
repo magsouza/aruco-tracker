@@ -6,8 +6,8 @@ from mpl_toolkits.mplot3d import axes3d
 
 class Tracker:
 
-    def __init__(self, msize):
-        self.marker_cm = msize
+    def __init__(self):
+        self.marker_cm = 2.75
         self.marker_px = 0
         self.get_marker = False
         self.desloc = 0
@@ -62,10 +62,8 @@ class Tracker:
                 cv2.imshow('My video', frame_markers)
             else:
                 print("No IDs detected")
-                cv2.imshow('My video', frame)
 
             k = cv2.waitKey(1) & 0xff
-
             if (k == 27):
                 break
 
@@ -74,13 +72,12 @@ class Tracker:
         
         # coverts from pixel to cm
         self.convert(self.desloc)
-        # plotting graph
-        self.plot_2d('y', self.trajetory, self.time)
-
-        self.plot(self.trajetory, self.time)
 
         cap.release()
         cv2.destroyAllWindows()
+
+        fl = self.write_file(self.trajetory, self.time)
+        return fl
 
     def get_center(self, corners):
         xm = ym = 0
@@ -100,33 +97,10 @@ class Tracker:
             self.desloc += np.sqrt(x + y)
 
     def convert(self, v):
-        v *= (self.marker_cm / 29)
+        v *= (self.marker_cm / self.marker_px)
 
-            
-    def plot_3d(self, trajetory, times):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        X = np.array([x[0] for x in trajetory])
-        Y = np.array([x[1] for x in trajetory])
-        Z = np.array(times)
-
-        ax.plot(X,Y,Z)
-        ax.set_xlabel('x (px)')
-        ax.set_ylabel('y (px)')
-        ax.set_zlabel('time (s)')
-            
-    def plot_2d(self, axis, points, time):
-        i = -1
-        if axis == 'x':
-            i = 0
-        elif axis == 'y':
-            i = 1
-        
-        y_axis = []
-        for point in points:
-            y_axis.append(point[i] * (self.marker_cm / 30) - 10)
-        plt.plot(time, y_axis)
-        plt.ylabel('cube displacement (cm)')
-        plt.xlabel('time (sec)')
-        plt.show()
+    def write_file(self, centers, times):
+        f = open('position.txt', 'w+')
+        for i in range(len(centers)):
+            f.write(f'{centers[i][0]} {centers[i][1]} {times[i]}\n')
+        f.close()
