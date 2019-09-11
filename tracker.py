@@ -48,7 +48,8 @@ class Tracker:
             if 8 in ids:
                 c = self.get_center(corners[pos][0])
                 self.trajetory.append(c)
-                self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000)
+                # as the slow motion is 10x slower
+                self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 10000)
 
             # draw the circle
             for center in self.trajetory:
@@ -73,6 +74,8 @@ class Tracker:
         
         # coverts from pixel to cm
         self.convert(self.desloc)
+        # plotting graph
+        self.plot_2d('y', self.trajetory, self.time)
 
         self.plot(self.trajetory, self.time)
 
@@ -95,15 +98,14 @@ class Tracker:
             x = pow((points[i-1][0] - points[i][0]),2)
             y = pow((points[i-1][1] - points[i][1]),2)
             self.desloc += np.sqrt(x + y)
-    
-    def convert(self, v_px):
-        self.desloc *= (self.marker_cm / 30)
 
-    def plot(self, trajetory, times):
+    def convert(self, v):
+        v *= (self.marker_cm / 29)
+
+            
+    def plot_3d(self, trajetory, times):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-
-        print(f'trajetory = {len(trajetory)} --- times = {len(times)}')
 
         X = np.array([x[0] for x in trajetory])
         Y = np.array([x[1] for x in trajetory])
@@ -113,4 +115,18 @@ class Tracker:
         ax.set_xlabel('x (px)')
         ax.set_ylabel('y (px)')
         ax.set_zlabel('time (s)')
+            
+    def plot_2d(self, axis, points, time):
+        i = -1
+        if axis == 'x':
+            i = 0
+        elif axis == 'y':
+            i = 1
+        
+        y_axis = []
+        for point in points:
+            y_axis.append(point[i] * (self.marker_cm / 30) - 10)
+        plt.plot(time, y_axis)
+        plt.ylabel('cube displacement (cm)')
+        plt.xlabel('time (sec)')
         plt.show()
