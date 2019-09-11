@@ -102,5 +102,5 @@ class Tracker:
     def write_file(self, centers, times):
         f = open('position.txt', 'w+')
         for i in range(len(centers)):
-            f.write(f'{centers[i][0]} {centers[i][1]} {times[i]}\n')
+            f.write(f'{times[i]} {centers[i][0]} {centers[i][1]} {0}\n')
         f.close()
