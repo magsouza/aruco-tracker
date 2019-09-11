@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from cv2 import aruco
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
 class Tracker:
 
@@ -22,7 +23,7 @@ class Tracker:
 
             # get frame
             ret, frame = cap.read()
-            
+
             # last frame
             if(frame is None):
                 break
@@ -70,10 +71,13 @@ class Tracker:
 
         # estimate the displacement of the cube
         self.get_move(self.trajetory)
+        
         # coverts from pixel to cm
         self.convert(self.desloc)
         # plotting graph
         self.plot_2d('y', self.trajetory, self.time)
+
+        self.plot(self.trajetory, self.time)
 
         cap.release()
         cv2.destroyAllWindows()
@@ -94,10 +98,24 @@ class Tracker:
             x = pow((points[i-1][0] - points[i][0]),2)
             y = pow((points[i-1][1] - points[i][1]),2)
             self.desloc += np.sqrt(x + y)
-    
+
     def convert(self, v):
         v *= (self.marker_cm / 29)
-    
+
+            
+    def plot_3d(self, trajetory, times):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        X = np.array([x[0] for x in trajetory])
+        Y = np.array([x[1] for x in trajetory])
+        Z = np.array(times)
+
+        ax.plot(X,Y,Z)
+        ax.set_xlabel('x (px)')
+        ax.set_ylabel('y (px)')
+        ax.set_zlabel('time (s)')
+            
     def plot_2d(self, axis, points, time):
         i = -1
         if axis == 'x':
