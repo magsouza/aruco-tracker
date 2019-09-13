@@ -3,11 +3,20 @@ import csv
 import numpy as np
 import pylab
 
+# window size
 pylab.rcParams['figure.figsize'] = (8.0, 8.0)
 
+# open a archive with points(t, x(t), y(t), z(t))
 def plot2d(fl1, fl2):
     
+    # parameters of each graph
+    parameters = [('magenta', 'Gazebo - X(t)', 'gazebo_x'), ('green', 'Gazebo - Y(t)', 'gazebo_y'), ('blue', 'Gazebo - Z(t)', 'gazebo_z'), ('yellow', 'Gazebo - Displacement(t)', 'gazebo_displacement'),  \
+                  ('cyan', 'Real - X(t)', 'real_x')  , ('red', 'Real - Y(t)', 'real_y') , ('coral', 'Real - Z(t)', 'real_z'), ('chocolate', 'Real - Displacement(t)', 'real_displacement')]
+
+    index = 0
+
     for fl in [fl1, fl2]:
+        print(index)
         axis_x = []
         axis_y = []
         axis_z = []
@@ -22,30 +31,36 @@ def plot2d(fl1, fl2):
                 axis_y.append(float(row[2]))
                 axis_z.append(float(row[3]))
 
+        # get displacement from trajectory
         displacement = get_offset(axis_x, axis_y, axis_z)
 
-        print(f'len(time) = {len(time)}  len(x) = {len(axis_x)} :: len(y) = {len(axis_y)} :: len(z) = {len(axis_z)} :: len(offset) = {len(displacement)}')
+        #print(f'len(time) = {len(time)}  len(x) = {len(axis_x)} :: len(y) = {len(axis_y)} :: len(z) = {len(axis_z)} :: len(offset) = {len(displacement)}')
 
-        plot(time, axis_x, 'Time (s)', 'X (m)', 'magenta', 'Gazebo - X', 'gazebo_x')
-        plot(time, axis_y, 'Time (s)', 'Y (m)', 'green', 'Gazebo - Y', 'gazebo_y')
-        plot(time, axis_z, 'Time (s)', 'Z (m)', 'blue', 'Gazebo - Z', 'gazebo_z')
-        plot(time, displacement, 'Time (s)', 'displacement (m)', 'green', 'Gazebo - Displacement', 'gazebo_displacement')
+        plot(time, axis_x, 'Time (s)', 'X (mm)', parameters[index])
+        plot(time, axis_y, 'Time (s)', 'Y (mm)', parameters[index + 1])
+        plot(time, axis_z, 'Time (s)', 'Z (mm)', parameters[index + 2])
+        plot(time, displacement, 'Time (s)', 'Displacement (mm)', parameters[index + 3])
 
-def plot(axis_x, axis_y, xlabel, ylabel, graph_color, graph_label, fig_name):
+        index += 4
+
+# ploting a graph 2D 
+def plot(axis_x, axis_y, xlabel, ylabel, parameters):
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.plot(axis_x, axis_y, color = graph_color, label = graph_label)
+    plt.plot(axis_x, axis_y, color = parameters[0], label = parameters[1])
     plt.grid(True)
     plt.legend()
-    plt.savefig(fig_name, format = 'png')
-    #plt.show()
+    plt.savefig(parameters[2], format = 'png')
+    plt.show()
     plt.clf()
 
     return
 
+# get the displacement of a cube from own trajectory
 def get_offset(x, y, z):
 
+    # displacement x time
     displacement = []
     displacement.append(0)
 
@@ -61,4 +76,4 @@ def get_offset(x, y, z):
     return displacement
 
 if __name__ == "__main__":
-    plot2d('cubo.txt')
+    plot2d('cubo.txt', 'cubinho.txt')
