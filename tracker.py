@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 from cv2 import aruco
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 
 class Tracker:
 
@@ -18,62 +17,75 @@ class Tracker:
         # captures the video
         cap = cv2.VideoCapture(name)
 
+        # plane where the marker falls 
+        pts_src = np.array([ [764, 144], [1166, 162], [1191, 766], [721, 766] ])
+
+        # plane where I want the marker
+        pts_dst = np.array([ [0, 0], [400, 0], [400, 600], [0, 600] ])            
+
+        # homography
+        h , status = cv2.findHomography(pts_src, pts_dst)
+
         # while video is running
         while (cap.isOpened()):
 
             # get frame
             ret, frame = cap.read()
-
+       
             # last frame
             if(frame is None):
                 break
+
+            # click ESC to quit
+            k = cv2.waitKey(1) & 0xff
+            if (k == 27):
+                break
+
+
+            frame = cv2.warpPerspective(frame, h, (400, 600))
+            cv2.imshow('Clean video', frame)
 
             # aruco dict paramenters, corners and ids
             aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
 
-            # find marker position and marker size in pixel
-            pos = 0
-            for i in range(ids.size):
-                # this condition checks the marker size
-                if ids[i] == 9 and not self.get_marker:
-                    self.marker_px = abs(corners[i][0][0][0] - corners[i][0][2][0])
-                    # comment the next line to get the size of the last frame
-                    self.get_marker = not self.get_marker
-                # this condition finds the cube marker
-                if ids[i] == 8:
-                    pos = i
+            if ids is not None:
 
-            if 8 in ids:
-                c = self.get_center(corners[pos][0])
-                self.trajetory.append(c)
-                # as the slow motion is 10x slower
-                self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 10000)
+                # find marker position and marker size in pixel
+                pos = 0
+                for i in range(ids.size):
+                    # this condition checks the marker size
+                    if ids[i] == 9 and not self.get_marker:
+                        self.marker_px = abs(corners[i][0][0][0] - corners[i][0][2][0])
+                        # comment the next line to get the size of the last frame
+                        self.get_marker = not self.get_marker
+                    # this condition finds the cube marker
+                    if ids[i] == 9:
+                        pos = i
 
-            # draw the circle
-            for center in self.trajetory:
-                cv2.circle(frame, center, 5, (255,102,102), -1)
-            
-            if ids.size > 0:
+                if 9 in ids:
+                    c = self.get_center(corners[pos][0])
+                    self.trajetory.append(c)
+                    # as the slow motion is 10x slower
+                    self.time.append(cap.get(cv2.CAP_PROP_POS_MSEC) / 10000)
+
+                # draw the circle
+                for center in self.trajetory:
+                    cv2.circle(frame, center, 5, (255,102,102), -1)
+                
                 # makes drawnings on the markers
                 frame_markers = aruco.drawDetectedMarkers(frame, corners, ids)
-                frame_markers = cv2.resize(frame_markers,(1280,720),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-                cv2.imshow('My video', frame_markers)
-            else:
-                print("No IDs detected")
+                cv2.imshow('Video with tracking', frame_markers)
 
-            k = cv2.waitKey(1) & 0xff
-            if (k == 27):
-                break
+        cap.release()
 
         # estimate the displacement of the cube
         self.get_move(self.trajetory)
         
         # coverts from pixel to cm
         self.convert(self.desloc)
-
-        cap.release()
+     
         cv2.destroyAllWindows()
 
         fl = self.write_file(self.trajetory, self.time)
@@ -102,5 +114,5 @@ class Tracker:
     def write_file(self, centers, times):
         f = open('position.txt', 'w+')
         for i in range(len(centers)):
-            f.write(f'{times[i]} {centers[i][0]} {centers[i][1]} {0}\n')
+            f.write(f'{centers[i][0]} {centers[i][1]} {times[i]}\n')
         f.close()
