@@ -6,11 +6,13 @@ import pylab
 pylab.rcParams['figure.figsize'] = (8.0, 8.0)
 
 def plot2d(fl1, fl2):
+    
     for fl in [fl1, fl2]:
         axis_x = []
         axis_y = []
         axis_z = []
         time   = []
+
         with open(fl) as csvfile:
             plots = csv.reader(csvfile, delimiter=' ')
 
@@ -24,19 +26,23 @@ def plot2d(fl1, fl2):
 
         print(f'len(time) = {len(time)}  len(x) = {len(axis_x)} :: len(y) = {len(axis_y)} :: len(z) = {len(axis_z)} :: len(offset) = {len(displacement)}')
 
-        plot(time, axis_y, 'Time (s)', 'Z (m)', 'magenta', 'Gazebo', 'gazebo')
+        plot(time, axis_x, 'Time (s)', 'X (m)', 'magenta', 'Gazebo - X', 'gazebo_x')
+        plot(time, axis_y, 'Time (s)', 'Y (m)', 'green', 'Gazebo - Y', 'gazebo_y')
+        plot(time, axis_z, 'Time (s)', 'Z (m)', 'blue', 'Gazebo - Z', 'gazebo_z')
+        plot(time, displacement, 'Time (s)', 'displacement (m)', 'green', 'Gazebo - Displacement', 'gazebo_displacement')
 
-def plot(axis_x, axis_y, xlabel, ylabel, graph_color, graph_label, name):
+def plot(axis_x, axis_y, xlabel, ylabel, graph_color, graph_label, fig_name):
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.plot(axis_x, axis_y, color = graph_color, label = graph_label)
     plt.grid(True)
     plt.legend()
-    plt.savefig(name, format = 'png')
-    plt.show()
+    plt.savefig(fig_name, format = 'png')
+    #plt.show()
     plt.clf()
 
+    return
 
 def get_offset(x, y, z):
 
